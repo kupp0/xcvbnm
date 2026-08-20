@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hands-on Lab: Cymbal Coffee — Oracle 26ai + Vertex AI AI-Powered Agent</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Prism.js Syntax Highlighting CSS (linked dynamically by JS based on theme) -->
+  <link id="prism-theme" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  
+  <style>
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-code: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-muted: #64748b;
+      --text-inverse: #f8fafc;
+      --border-color: #e2e8f0;
+      --accent-color: #10b981;
+      --accent-hover: #059669;
+      --accent-soft: #ecfdf5;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-display: 'Outfit', var(--font-sans);
+      --font-mono: 'Fira Code', monospace;
+      --sidebar-width: 280px;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #090d16;
+      --bg-surface: #111827;
+      --bg-code: #0b0f19;
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-inverse: #111827;
+      --border-color: #1f2937;
+      --accent-color: #34d399;
+      --accent-hover: #10b981;
+      --accent-soft: #064e3b;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Layout structure */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--bg-surface);
+      border-right: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--text-primary);
+    }
+
+    .brand svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--accent-color);
+    }
+
+    .toc-title {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+    }
+
+    .toc-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toc-item a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      display: block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toc-item.level-3 a {
+      padding-left: 1.25rem;
+      font-size: 0.85rem;
+    }
+
+    .toc-item a:hover {
+      color: var(--text-primary);
+      background-color: var(--border-color);
+    }
+
+    .toc-item.active a {
+      color: var(--accent-color);
+      font-weight: 600;
+      background-color: var(--accent-soft);
+    }
+
+    /* Main Content Area */
+    main {
+      flex: 1;
+      padding: 3rem 4rem;
+      max-width: calc(100% - var(--sidebar-width));
+      overflow-x: hidden;
+    }
+
+    .content-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Header section */
+    header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 3rem;
+      gap: 1rem;
+    }
+
+    .theme-toggle-btn {
+      background: none;
+      border: 1px solid var(--border-color);
+      padding: 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      background-color: var(--border-color);
+    }
+
+    .theme-toggle-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Typography & Markdown styling */
+    h1 {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    h2 {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-top: 3rem;
+      margin-bottom: 1.25rem;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+      scroll-margin-top: 2rem;
+    }
+
+    h3 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+      scroll-margin-top: 2rem;
+    }
+
+    p {
+      margin-bottom: 1.25rem;
+      color: var(--text-primary);
+      opacity: 0.9;
+    }
+
+    a {
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    a:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+    }
+
+    hr {
+      border: 0;
+      height: 1px;
+      background-color: var(--border-color);
+      margin: 3rem 0;
+    }
+
+    /* Blockquotes */
+    blockquote {
+      border-left: 4px solid var(--accent-color);
+      background-color: var(--bg-surface);
+      padding: 1rem 1.5rem;
+      margin: 1.5rem 0;
+      border-radius: 0 8px 8px 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    blockquote p {
+      margin-bottom: 0;
+      font-style: italic;
+    }
+
+    /* Lists */
+    ul, ol {
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    li p {
+      margin-bottom: 0.5rem;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      background-color: var(--bg-surface);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    th, td {
+      padding: 1rem 1.25rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: var(--border-color);
+      font-weight: 600;
+      font-family: var(--font-display);
+    }
+
+    /* Inline code */
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      background-color: var(--bg-code);
+      color: var(--text-primary);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      word-break: break-word;
+      transition: background-color 0.3s ease;
+    }
+
+    /* Code blocks container styling */
+    pre {
+      margin: 0;
+      border-radius: 8px;
+      overflow: auto;
+      background-color: var(--bg-code) !important;
+      border: 1px solid var(--border-color);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    pre code {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      background-color: transparent;
+      padding: 1.25rem !important;
+      display: block;
+      border-radius: 0;
+      line-height: 1.5;
+    }
+
+    .code-block-wrapper {
+      position: relative;
+      margin: 1.5rem 0;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 0.45rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+
+    .copy-btn:hover {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      border-color: var(--text-muted);
+    }
+
+    .lang-badge {
+      position: absolute;
+      bottom: 0.75rem;
+      right: 0.75rem;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    /* Progress bar at the top */
+    .progress-bar-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background-color: transparent;
+      z-index: 1000;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background-color: var(--accent-color);
+      width: 0%;
+      transition: width 0.1s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .app-container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 1.5rem;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+      main {
+        max-width: 100%;
+        padding: 2rem;
+      }
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="reading-progress"></div>
+  </div>
+
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="brand">
+        <!-- SVG Coffee Logo -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M2 21h18v-2H2v2M20 8h-2V5h2v3M4 19h12v-4H4v4m0-6h12V9H4v4m0-6h12V5H4v2m16-4H2v2h18V3z"/>
+        </svg>
+        <span>Cymbal Coffee Lab</span>
+      </div>
+      <div>
+        <h3 class="toc-title">On this page</h3>
+        <nav>
+          <ul class="toc-list" id="toc-list">
+            <!-- Table of contents will be generated dynamically -->
+          </ul>
+        </nav>
+      </div>
+    </aside>
+
+    <main>
+      <header>
+        <button class="theme-toggle-btn" id="theme-toggle" title="Toggle dark/light mode">
+          <!-- Light Mode Icon (Sun) -->
+          <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+          <!-- Dark Mode Icon (Moon) -->
+          <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+          </svg>
+        </button>
+      </header>
+
+      <article class="content-wrapper" id="content-body">
+        <h1>Hands-on Lab: Cymbal Coffee — Oracle 26ai + Vertex AI AI-Powered Agent</h1>
+<p>Welcome to the <strong>Cymbal Coffee Hands-on Lab</strong>. In this workshop, you will step-by-step setup, configure, ingest data into, and run a premium next-generation AI-powered coffee recommendation application. For complete background concepts and documentation material, please visit the official <a href="https://cofin.github.io/oracledb-vertexai-demo/index.html">Cymbal Coffee Documentation Site</a>.</p>
+<p>The application uses <strong>Oracle Database 26ai</strong> for semantic vector search (<code>VECTOR(3072, FLOAT32)</code> with HNSW INMEMORY indexes), <strong>Google Cloud Vertex AI</strong> for enterprise-grade text embeddings (<code>gemini-embedding-001</code>) and large language model orchestration (<code>gemini-2.5-flash-lite</code>), and <strong>Google ADK 2.0</strong> as the multi-agent planning engine. The application frontend is built on <strong>Litestar 2</strong>, <strong>HTMX</strong>, and <strong>Jinja templates</strong>, managed with <strong>Dishka Dependency Injection</strong> and served using the high-performance <strong>Granian</strong> ASGI server.</p>
+<hr />
+<h2>Prerequisites &amp; Audience Expectations</h2>
+<ul>
+<li><strong>GCP Knowledge</strong>: None! This lab is designed to be fully beginner-friendly for Google Cloud Platform.</li>
+<li><strong>Tools Required</strong>: A web browser and access to a Google Cloud Console account with billing or credits enabled.</li>
+</ul>
+<hr />
+<h2>Step 1: Google Cloud Platform Environment Setup</h2>
+<p>In this first step, you will initialize your cloud workspace and enable the necessary APIs for machine learning, maps, and virtual machines.</p>
+<ol>
+<li>Log into the <strong>Google Cloud Console</strong> (<code>https://console.cloud.google.com</code>) using your workshop credentials.</li>
+<li>In the top navigation bar, click the <strong>Activate Cloud Shell</strong> icon (a small terminal icon <code>&gt;_</code>). Wait a few moments for the persistent Linux terminal environment to provision and connect.</li>
+<li>Set your current active project using the following command (replace <code>[YOUR-PROJECT-ID]</code> with your actual GCP project ID shown on your console dashboard):<pre><code class="language-bash">gcloud config set project [YOUR-PROJECT-ID]
+</code></pre>
+</li>
+<li>Define the default geographic deployment regions and zones:<pre><code class="language-bash">export REGION=us-central1
+export ZONE=us-central1-c
+export PROJECT_ID=$(gcloud config get-value project)
+export USER=&lt;Your provided user e.g. devstarxxxx@gcplab.me&gt;
+
+gcloud config set compute/region $REGION
+gcloud config set compute/zone $ZONE
+</code></pre>
+</li>
+<li>Enable the necessary Google Cloud Services APIs for Compute Engine, Identity-Aware Proxy, Vertex AI, and Maps backends:<pre><code class="language-bash">gcloud services enable compute.googleapis.com \
+                       iap.googleapis.com \
+                       aiplatform.googleapis.com \
+                       maps-backend.googleapis.com \
+                       osconfig.googleapis.com
+</code></pre>
+</li>
+</ol>
+<hr />
+<h2>Step 2: Networking and Security Configuration</h2>
+<p>To keep your virtual machine secure while allowing access, you will leverage Identity-Aware Proxy (IAP) for secure SSH tunnels without exposing public IP addresses to the open internet.</p>
+<ol>
+<li>Create a firewall rule allowing incoming SSH traffic from the Google IAP secure proxy block:<pre><code class="language-bash">gcloud compute firewall-rules create allow-ssh-ingress-from-iap \
+ --network=default \
+ --direction=INGRESS \
+ --action=allow \
+ --rules=tcp:22 \
+ --source-ranges=35.235.240.0/20
+</code></pre>
+</li>
+<li>Bind the IAP tunnel resource accessor role to your cloud user account:<pre><code class="language-bash">gcloud projects add-iam-policy-binding $PROJECT_ID \
+ --member=&quot;user:$USER&quot; \
+ --role=&quot;roles/iap.tunnelResourceAccessor&quot;
+</code></pre>
+</li>
+<li>Create a Cloud Router to serve as the backbone for safe internet outbound requests (needed to download system packages and container images):<pre><code class="language-bash">gcloud compute routers create default-router --network=default
+</code></pre>
+</li>
+<li>Provision a NAT Gateway associated with the router so the VM can talk out to the internet safely without an external public IP:<pre><code class="language-bash">gcloud compute routers nats create default-nat-gw \
+ --router=default-router \
+ --auto-allocate-nat-external-ips \
+ --nat-all-subnet-ip-ranges \
+ --enable-logging
+</code></pre>
+</li>
+</ol>
+<hr />
+<h2>Step 3: Compute Engine Virtual Machine Provisioning</h2>
+<p>Now, you will spin up a high-performance Compute Engine virtual machine where the Oracle 26ai database container and the Litestar web application will co-exist.</p>
+<ol>
+<li>Run the following command in Cloud Shell to create a <code>e2-standard-4</code> (4 vCPUs, 16 GB RAM) Ubuntu 22.04 LTS virtual machine:<pre><code class="language-bash">gcloud compute instances create coffeevm \
+  --project=$PROJECT_ID \
+  --machine-type=e2-standard-4 \
+  --zone=$ZONE \
+  --network-interface=stack-type=IPV4_ONLY,subnet=default,no-address \
+  --metadata=enable-osconfig=TRUE,enable-oslogin=true \
+  --no-restart-on-failure \
+  --maintenance-policy=TERMINATE \
+  --provisioning-model=SPOT \
+  --instance-termination-action=STOP \
+  --scopes=https://www.googleapis.com/auth/cloud-platform \
+  --tags=xe \
+  --create-disk=auto-delete=yes,boot=yes,device-name=coffeevm,image=projects/ubuntu-os-cloud/global/images/ubuntu-2204-jammy-v20241115,mode=rw,size=100,type=pd-balanced
+</code></pre>
+</li>
+<li>Grant the attached Compute Engine default service account permissions to invoke Vertex AI models:<pre><code class="language-bash">PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format=&quot;value(projectNumber)&quot;)
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=&quot;serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com&quot; \
+  --role=&quot;roles/aiplatform.user&quot;
+</code></pre>
+</li>
+</ol>
+<hr />
+<h2>Step 4: Connect to the VM and Install Core OS Packages</h2>
+<p>Now that the virtual machine is running, you will establish a secure tunnel into it and install core tools like Docker, Git, and Python runtimes.</p>
+<ol>
+<li>
+<p>Establish a secure SSH session into the newly provisioned VM via the IAP secure tunnel:</p>
+<pre><code class="language-bash">gcloud compute ssh --zone &quot;$ZONE&quot; &quot;coffeevm&quot; --tunnel-through-iap --project $PROJECT_ID
+</code></pre>
+</li>
+<li>
+<p>Once inside the VM terminal, configure the system to automatically restart background services without prompting interactive dialog screens (this avoids environment variables being stripped away by <code>sudo</code> operations):</p>
+<pre><code class="language-bash">sudo sed -i &quot;s/#\$nrconf{restart} = 'i';/\$nrconf{restart} = 'a';/g&quot; /etc/needrestart/needrestart.conf
+</code></pre>
+</li>
+<li>
+<p>Refresh the package index logs:</p>
+<pre><code class="language-bash">sudo apt update
+</code></pre>
+</li>
+<li>
+<p>Purge any legacy node packages to prevent library conflicts:</p>
+<pre><code class="language-bash">sudo apt purge -y nodejs npm libnode-dev
+</code></pre>
+</li>
+<li>
+<p>Clean up legacy dependencies:</p>
+<pre><code class="language-bash">sudo apt autoremove -y
+</code></pre>
+</li>
+<li>
+<p>Install core utilities, compilation dependencies, Docker, and curl:</p>
+<pre><code class="language-bash">sudo apt install -y docker.io docker-compose build-essential python3.10-venv git curl
+</code></pre>
+</li>
+<li>
+<p>Fetch and register the modern NodeSource Node.js v20 distribution setup:</p>
+<pre><code class="language-bash">curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+</code></pre>
+</li>
+<li>
+<p>Install the updated modern Node.js engine:</p>
+<pre><code class="language-bash">sudo apt install -y nodejs
+</code></pre>
+</li>
+<li>
+<p>Grant your local user account permission to interact with Docker without needing root sudo flags:</p>
+<pre><code class="language-bash">sudo usermod -aG docker $USER
+</code></pre>
+</li>
+<li>
+<p><strong>Crucial Step</strong>: Type <code>exit</code> to disconnect from the VM session, then reconnect using the exact same command to apply the new group membership permissions:</p>
+</li>
+</ol>
+<pre><code class="language-bash">exit
+gcloud compute ssh --zone &quot;$ZONE&quot; &quot;coffeevm&quot; --tunnel-through-iap --project $PROJECT_ID
+</code></pre>
+<hr />
+<h2>Step 5: Clone Repository and Configure Environment</h2>
+<ol>
+<li>Clone the official workshop repository and change into the project root directory:<pre><code class="language-bash">git clone https://github.com/cofin/oracledb-vertexai-demo.git
+cd oracledb-vertexai-demo/
+</code></pre>
+</li>
+<li>Run the idempotent <code>make install</code> workflow. This script will automatically download <code>uv</code> (the lightning-fast Python toolchain manager), build frontend assets, and configure localized paths:<pre><code class="language-bash">export PATH=$PATH:~/.local/bin
+make install
+</code></pre>
+</li>
+<li>Initialize your environmental variables file using the project interactive initializer:<pre><code class="language-bash">uv run python manage.py init
+</code></pre>
+<em>Follow the prompts to match your current environment. For deployment mode select <code>managed</code>. When prompted for <code>VERTEX_AI_PROJECT_ID</code>, enter your actual GCP project ID. Keep database passwords as <code>super-secret</code> and database user as <code>app</code>.</em></li>
+</ol>
+<hr />
+<h2>Step 6: Startup Oracle 26ai Database and Load Fixture Vectors</h2>
+<ol>
+<li>Spin up the infrastructure layer, which downloads and runs the Oracle Database 26ai container image alongside a Valkey caching instance:<pre><code class="language-bash">make start-infra
+</code></pre>
+</li>
+<li>Verify that both container systems are active and healthy:<pre><code class="language-bash">docker ps
+</code></pre>
+</li>
+<li>Apply database migrations, construct tables, and populate the database with committed demo fixtures (122 coffee items, 16 premium store locations):<pre><code class="language-bash">uv run coffee upgrade
+</code></pre>
+</li>
+</ol>
+<hr />
+<h2>Step 7: Run the Web Application &amp; Explore Oracle Vector Search</h2>
+<ol>
+<li>To browse the premium web interface, you need to disconnect from your current SSH session and reconnect while mapping a port forwarding tunnel:<pre><code class="language-bash">exit
+gcloud compute ssh --zone &quot;$ZONE&quot; &quot;coffeevm&quot; --tunnel-through-iap --project $PROJECT_ID -- -L8080:localhost:5006
+</code></pre>
+</li>
+<li>Move back to the application directory, build the frontend assets, and start the Granian dev app server:<pre><code class="language-bash">cd oracledb-vertexai-demo/
+uv run python manage.py assets build
+uv run coffee run
+</code></pre>
+</li>
+<li>In the upper right area of your Google Cloud Shell browser screen, click the <strong>Web Preview</strong> button and select <strong>Preview on port 8080</strong>. A new tab will open displaying the beautiful chat recommendation layout!</li>
+<li>Visit <strong><code>http://localhost:8080/explore</code></strong> (via the same tunnel web preview) to access the interactive <strong>Oracle Vector Explorer</strong>. This dedicated diagnostic tool allows you to look directly under the hood of Oracle 26ai vector search operations:
+<ul>
+<li><strong>Simulate Raw Vector Queries:</strong> Input any product description or user phrase to test vector matching without running the full LLM multi-agent conversation flow.</li>
+<li><strong>Inspect Exact Query Latencies:</strong> Review exact execution times in milliseconds to observe the high performance of modern enterprise databases processing multi-dimensional vector queries.</li>
+<li><strong>Distance Comparison Strategies:</strong> Visualize calculated vector distance scores (e.g., Cosine or Euclidean distances) between query embeddings and product row metadata.</li>
+<li><strong>Analyze Oracle EXPLAIN PLANS:</strong> Click on query lines to open the raw database <code>DBMS_XPLAN.DISPLAY</code> outputs, revealing exact vector search access paths, filter operations, row count evaluations, and HNSW INMEMORY index usage hits.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2>Advanced Challenge Tasks for Workshop Graduates</h2>
+<p>Once the core application is up and running, challenge yourself or your participants with the following real-world architectural expansion exercises:</p>
+<h3>Challenge 1: Implement Persistent Chat Conversation Logging to Google BigQuery</h3>
+<p><strong>Objective:</strong> Stream chat logs, user questions, and vector response latencies into a centralized serverless analytics layer for business intelligence and quality monitoring.</p>
+<ul>
+<li>
+<p><strong>Step A: Enable the Service &amp; Prepare Dataset</strong>
+Run these commands in your <strong>Google Cloud Shell</strong> (not inside the VM):</p>
+<pre><code class="language-bash">gcloud services enable bigquery.googleapis.com
+bq mk --dataset --location=us-central1 coffee_analytics
+</code></pre>
+</li>
+<li>
+<p><strong>Step B: Create the Target Schema</strong>
+Run this in your <strong>Google Cloud Shell</strong> (not inside the VM):</p>
+<pre><code class="language-bash">bq mk --table coffee_analytics.chat_logs \
+  session_id:STRING,timestamp:TIMESTAMP,user_query:STRING,response_text:STRING,latency_ms:INTEGER
+</code></pre>
+</li>
+<li>
+<p><strong>Step C: Grant BigQuery IAM Permissions to the VM</strong>
+Run this in your <strong>Google Cloud Shell</strong> (not inside the VM):</p>
+<pre><code class="language-bash">PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format=&quot;value(projectNumber)&quot;)
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=&quot;serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com&quot; \
+  --role=&quot;roles/bigquery.dataEditor&quot;
+</code></pre>
+</li>
+<li>
+<p><strong>Step D: Dependency Management</strong>
+Now, switch to the terminal where you are connected to the <strong>VM</strong> (or reconnect via SSH). Move to the application directory and add the official Google Cloud BigQuery client library into the application runtime:</p>
+<pre><code class="language-bash">cd oracledb-vertexai-demo/
+uv add google-cloud-bigquery
+</code></pre>
+</li>
+<li>
+<p><strong>Step E: Extend the Chat Controller Layer (Full File Drop-in Replacement)</strong>
+Open the streaming endpoint controller file located at <code>src/app/domain/chat/controllers/_chat.py</code>. To eliminate any risk of alignment or Python indentation hierarchy errors, select all text inside the file and replace its entire contents with this complete updated drop-in file code:</p>
+<pre><code class="language-python"># SPDX-FileCopyrightText: 2026 Google LLC
+# SPDX-License-Identifier: Apache-2.0
+
+import re
+import uuid
+from collections.abc import AsyncIterator
+
+import structlog
+from litestar import Controller, Response, post
+from litestar.exceptions import ValidationException
+from litestar.plugins.flash import flash
+from litestar.plugins.htmx import HTMXRequest, HTMXTemplate
+from litestar.response import ServerSentEvent
+from litestar.status_codes import HTTP_503_SERVICE_UNAVAILABLE
+
+from app.domain.chat import schemas
+from app.domain.chat.controllers._helpers import chat_form_from_request, location_context_from_form, metrics_badges
+from app.domain.chat.exceptions import AIServiceUnconfigured
+from app.domain.chat.services import ADKRunner, AgentToolsService
+from app.domain.chat.session import adk_session_identity, clear_adk_session_identity
+from app.lib.di import Inject
+from app.utils.serialization import to_json
+
+logger = structlog.get_logger()
+_STREAM_ERROR_MESSAGE = &quot;Chat failed while streaming. Please try again.&quot;
+
+
+class CoffeeChatController(Controller):
+    &quot;&quot;&quot;Coffee chat API controller — JSON for SPA clients, HTML partials for HTMX.&quot;&quot;&quot;
+
+    @staticmethod
+    def validate_message(message: str) -&gt; str:
+        &quot;&quot;&quot;Validate and sanitize user message input.&quot;&quot;&quot;
+        message = re.sub(r&quot;&lt;[^&gt;]+&gt;&quot;, &quot;&quot;, message)
+        max_length = 500
+        if len(message) &gt; max_length:
+            message = message[:max_length]
+        message = message.replace(&quot;\x00&quot;, &quot;&quot;).strip()
+
+        if not message:
+            raise ValidationException(detail=&quot;Message cannot be empty&quot;)
+
+        return message
+
+    @staticmethod
+    def validate_persona(persona: str) -&gt; str:
+        &quot;&quot;&quot;Validate persona input.&quot;&quot;&quot;
+        if persona not in {&quot;novice&quot;, &quot;enthusiast&quot;, &quot;expert&quot;, &quot;barista&quot;}:
+            return &quot;enthusiast&quot;
+        return persona
+
+    @post(path=&quot;/api/chat&quot;, name=&quot;chat.api.send&quot;)
+    async def send_chat_message(
+        self,
+        adk_runner: Inject[ADKRunner],
+        tools_service: Inject[AgentToolsService],
+        request: HTMXRequest,
+    ) -&gt; Response:
+        &quot;&quot;&quot;Handle chat submission. HTMX clients get partial HTML; SPA clients get JSON.&quot;&quot;&quot;
+        data = await chat_form_from_request(request)
+        try:
+            clean_message = self.validate_message(data.message)
+            location_context = location_context_from_form(data)
+        except ValidationException as exc:
+            if request.htmx:
+                return HTMXTemplate(
+                    template_name=&quot;partials/chat_error.html.j2&quot;,
+                    context={&quot;error&quot;: str(exc.detail)},
+                    re_target=&quot;#chat-error&quot;,
+                    re_swap=&quot;innerHTML&quot;,
+                )
+            raise
+
+        validated_persona = self.validate_persona(data.persona)
+        user_id, session_id = adk_session_identity(request)
+
+        try:
+            result = await adk_runner.process_request(
+                query=clean_message,
+                user_id=user_id,
+                session_id=session_id,
+                persona=validated_persona,
+                tools_service=tools_service,
+                location_context=location_context,
+            )
+        except AIServiceUnconfigured as exc:
+            await logger.awarning(&quot;AI service not configured&quot;, detail=exc.detail)
+            if request.htmx:
+                return HTMXTemplate(
+                    template_name=&quot;partials/chat_error.html.j2&quot;,
+                    context={&quot;error&quot;: exc.detail},
+                    re_target=&quot;#chat-error&quot;,
+                    re_swap=&quot;innerHTML&quot;,
+                )
+            return Response(
+                content={
+                    &quot;status&quot;: HTTP_503_SERVICE_UNAVAILABLE,
+                    &quot;title&quot;: exc.detail,
+                    &quot;detail&quot;: &quot;Service Unavailable&quot;,
+                },
+                status_code=HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        answer = result.get(&quot;answer&quot;, &quot;&quot;)
+        intent = result.get(&quot;intent_detected&quot;, &quot;GENERAL_CONVERSATION&quot;)
+        from_cache = bool(result.get(&quot;from_cache&quot;, False))
+
+        if request.htmx:
+            badges = metrics_badges(result, intent, from_cache)
+            latency = badges[&quot;total_ms&quot;]
+            flash(
+                request,
+                f&quot;Reply in {latency} ms&quot; + (&quot; (cache hit)&quot; if from_cache else &quot;&quot;),
+                &quot;success&quot; if from_cache else &quot;info&quot;,
+            )
+            return HTMXTemplate(
+                template_name=&quot;partials/_chat_response.html.j2&quot;,
+                context={
+                    &quot;message&quot;: schemas.ChatMessage(message=answer, source=&quot;ai&quot;),
+                    &quot;intent_detected&quot;: intent,
+                    &quot;latency_ms&quot;: latency,
+                    &quot;from_cache&quot;: from_cache,
+                    &quot;embedding_cache_hit&quot;: bool(result.get(&quot;embedding_cache_hit&quot;, False)),
+                    &quot;metrics_badges&quot;: badges,
+                },
+                trigger_event=&quot;chat:reply-rendered&quot;,
+                after=&quot;swap&quot;,
+            )
+
+        return Response(
+            content=schemas.CoffeeChatReply(
+                message=clean_message,
+                messages=[
+                    schemas.ChatMessage(message=clean_message, source=&quot;human&quot;),
+                    schemas.ChatMessage(message=answer, source=&quot;ai&quot;),
+                ],
+                answer=answer,
+                query_id=str(uuid.uuid4()),
+                search_metrics=result.get(&quot;search_metrics&quot;, {}),
+                sql_phases=result.get(&quot;sql_phases&quot;, []),
+                from_cache=from_cache,
+                embedding_cache_hit=bool(result.get(&quot;embedding_cache_hit&quot;, False)),
+                intent_detected=intent,
+                store_results=result.get(&quot;store_results&quot;, []),
+                inventory_results=result.get(&quot;inventory_results&quot;, []),
+                map_actions=result.get(&quot;map_actions&quot;, []),
+                location_context=result.get(&quot;location_context&quot;, {}),
+            ),
+        )
+
+    @post(path=&quot;/api/chat/stream&quot;, name=&quot;chat.api.stream&quot;)
+    async def stream_chat_message(
+        self,
+        adk_runner: Inject[ADKRunner],
+        tools_service: Inject[AgentToolsService],
+        request: HTMXRequest,
+    ) -&gt; ServerSentEvent:
+        &quot;&quot;&quot;Stream chat response events for the browser chat UI.&quot;&quot;&quot;
+        data = await chat_form_from_request(request)
+        clean_message = self.validate_message(data.message)
+        validated_persona = self.validate_persona(data.persona)
+        location_context = location_context_from_form(data)
+        user_id, session_id = adk_session_identity(request)
+        adk_runner.ensure_configured()
+
+        async def stream_events() -&gt; AsyncIterator[dict[str, str]]:
+            import time
+            import asyncio
+            from datetime import datetime, timezone
+            from google.cloud import bigquery
+
+            start_time = time.time()
+            final_payload = {}
+
+            try:
+                async for event in adk_runner.stream_request(
+                    query=clean_message,
+                    user_id=user_id,
+                    session_id=session_id,
+                    persona=validated_persona,
+                    tools_service=tools_service,
+                    location_context=location_context,
+                ):
+                    if event.get(&quot;type&quot;) == &quot;final&quot;:
+                        final_payload = event
+
+                    event_type = str(event.get(&quot;type&quot;, &quot;message&quot;))
+                    yield {&quot;event&quot;: event_type, &quot;data&quot;: to_json(event, as_bytes=False)}
+
+                if final_payload:
+                    duration_ms = int((time.time() - start_time) * 1000)
+                    final_text = final_payload.get(&quot;answer&quot;, &quot;&quot;)
+
+                    def log_to_bigquery():
+                        try:
+                            client = bigquery.Client()
+                            row = [{
+                                &quot;session_id&quot;: session_id,
+                                &quot;timestamp&quot;: datetime.now(timezone.utc).isoformat(),
+                                &quot;user_query&quot;: clean_message,
+                                &quot;response_text&quot;: final_text,
+                                &quot;latency_ms&quot;: duration_ms
+                            }]
+                            client.insert_rows_json(&quot;coffee_analytics.chat_logs&quot;, row)
+                        except Exception as e:
+                            print(f&quot;BigQuery logging failed: {e}&quot;)
+
+                    asyncio.get_running_loop().run_in_executor(None, log_to_bigquery)
+
+            except Exception as exc:  # noqa: BLE001
+                await logger.aexception(
+                    &quot;Chat stream failed after response started&quot;,
+                    error_type=type(exc).__name__,
+                    detail=str(exc),
+                )
+                yield {
+                    &quot;event&quot;: &quot;error&quot;,
+                    &quot;data&quot;: to_json({&quot;type&quot;: &quot;error&quot;, &quot;message&quot;: _STREAM_ERROR_MESSAGE}, as_bytes=False),
+                }
+
+        return ServerSentEvent(stream_events(), status_code=200)
+
+    @post(path=&quot;/api/chat/session/clear&quot;, name=&quot;chat.api.clear_session&quot;, status_code=200)
+    async def clear_chat_session(self, adk_runner: Inject[ADKRunner], request: HTMXRequest) -&gt; Response:
+        &quot;&quot;&quot;Clear the anonymous browser's ADK chat session.&quot;&quot;&quot;
+        user_id, session_id = adk_session_identity(request)
+        await adk_runner.clear_session(user_id=user_id, session_id=session_id)
+        clear_adk_session_identity(request)
+        return Response(content={&quot;status&quot;: &quot;cleared&quot;})
+</code></pre>
+</li>
+</ul>
+<hr />
+<h3>Challenge 2: Embed Interactive Google Maps Iframes for Store Proximity</h3>
+<p><strong>Objective:</strong> Enrich the frontend UI by embedding a dynamic visual map whenever a customer asks for location details or nearby physical stores.</p>
+<ul>
+<li>
+<p><strong>Step A: Provision a Restricted Maps API Key</strong>
+Da wir das erste Mal Google Maps in diesem Cloud-Projekt verwenden, verlangt Google vor der Schlüsselerstellung eine einmalige interaktive Initialisierung des Maps-Arbeitsbereichs im Browser, um die Verbindung mit dem Rechnungskonto abzuschließen:</p>
+<ol>
+<li>Klicke auf der angezeigten <strong>Google Maps Platform / Overview</strong> Willkommensseite direkt auf den großen blauen Button <strong>&quot;Enable APIs&quot;</strong>. Dadurch schließt Google die Onboarding-Einrichtung ab und schaltet das linke Menü vollständig frei.</li>
+<li>Navigiere anschließend in der linken Leiste (oder unter <strong>APIs &amp; Services</strong>) zu <strong>Keys &amp; Credentials</strong> (bzw. <strong>Credentials</strong>).</li>
+<li>Klicke oben auf <strong>Create Credentials</strong> -&gt; <strong>API Key</strong>.</li>
+<li><em>Best Practice:</em> Klicke im Pop-up auf <strong>Restrict Key</strong> und wähle unter <em>API Restrictions</em> im Dropdown exakt die <strong>Maps Embed API</strong> aus, um den Schlüssel sicher abzuriegeln.</li>
+</ol>
+</li>
+<li>
+<p><strong>Step B: Configuration Setup</strong>
+Open your <code>.env</code> file inside the VM and wire up the specialized configuration keys to let the backend framework detect the key:</p>
+<pre><code class="language-env">MAPS_ENABLE_EMBED=true
+GOOGLE_MAPS_EMBED_API_KEY=your_newly_created_restricted_key_here
+</code></pre>
+</li>
+<li>
+<p><strong>Step C: Expose Settings to the Template Context &amp; Frontend DOM (Full File Drop-in Replacement)</strong>
+By default, the application template renderer doesn't inject backend config settings globally. You must pass them into the context via the page controller route.</p>
+<ol>
+<li>Open <code>src/app/domain/web/controllers/_pages.py</code>. To eliminate any risk of Python alignment or indentation errors, select all text inside the file and replace its entire contents with this complete updated drop-in file code:</li>
+</ol>
+<pre><code class="language-python"># SPDX-FileCopyrightText: 2026 Google LLC
+# SPDX-License-Identifier: Apache-2.0
+
+&quot;&quot;&quot;Page-level routes for the HTMX frontend.
+
+HTMX-aware partials live alongside the domain controllers that own
+their data (e.g. ``app.domain.chat.controllers``,
+``app.domain.products.controllers``).
+&quot;&quot;&quot;
+
+import structlog
+from litestar import Controller, get
+from litestar.plugins.htmx import HTMXRequest, HTMXTemplate
+
+from app.domain.chat.services import ADKRunner
+from app.domain.chat.session import adk_session_identity
+from app.lib.di import Inject
+
+logger = structlog.get_logger()
+
+
+class PageController(Controller):
+    &quot;&quot;&quot;Server-rendered page routes for chat and explore.&quot;&quot;&quot;
+
+    @get(path=&quot;/&quot;, name=&quot;pages.chat&quot;, exclude_from_auth=True, include_in_schema=False)
+    async def chat_page(self, request: HTMXRequest, adk_runner: Inject[ADKRunner]) -&gt; HTMXTemplate:
+        from app.lib.settings import get_settings
+        user_id, session_id = adk_session_identity(request)
+        history_messages = await adk_runner.get_history_or_empty(user_id=user_id, session_id=session_id)
+        return HTMXTemplate(
+            template_name=&quot;pages/chat.html.j2&quot;, 
+            context={&quot;history_messages&quot;: history_messages, &quot;settings&quot;: get_settings()}
+        )
+
+    @get(path=&quot;/explore&quot;, name=&quot;pages.explore&quot;, exclude_from_auth=True, include_in_schema=False)
+    async def explore_page(self, q: str | None = None) -&gt; HTMXTemplate:
+        return HTMXTemplate(template_name=&quot;pages/explore.html.j2&quot;, context={&quot;query&quot;: q or &quot;&quot;})
+</code></pre>
+<ol start="2">
+<li>Now that <code>settings</code> is available in Jinja, pass it down to the client-side JavaScript runtime. Open <code>src/app/domain/web/templates/base.html.j2</code> and locate the <code>&lt;body&gt;</code> tag (line 19). Add the dataset variables:</li>
+</ol>
+<pre><code class="language-html">&lt;body hx-ext=&quot;litestar&quot; data-app-shell=&quot;true&quot; 
+      data-maps-enabled=&quot;{{ 'true' if settings.maps.embed_enabled else 'false' }}&quot;
+      data-maps-key=&quot;{{ settings.maps.EMBED_API_KEY }}&quot;
+      class=&quot;app-shell font-sans text-strong antialiased&quot;&gt;
+</code></pre>
+</li>
+<li>
+<p><strong>Step D: Inject the Google Maps Iframe in the JavaScript Card Template</strong>
+Open the frontend source file located at <strong><code>src/resources/main.js</code></strong>. Locate the <code>renderStoreCard(row, action)</code> function (around line 713).</p>
+<p>Modify the function return statement string to query the body datasets and append the Google Maps Embed iframe container at the bottom of the store card:</p>
+<pre><code class="language-javascript">const renderStoreCard = (row, action) =&gt; {
+  // ... existing store card variables (name, address, distance, etc.) ...
+
+  const mapsEnabled = document.body.dataset.mapsEnabled === &quot;true&quot;
+  const mapsApiKey = document.body.dataset.mapsKey
+  const lat = rowValue(row, [&quot;latitude&quot;, &quot;store_latitude&quot;])
+  const lng = rowValue(row, [&quot;longitude&quot;, &quot;store_longitude&quot;])
+
+  const iframeMarkup = (mapsEnabled &amp;&amp; mapsApiKey &amp;&amp; lat &amp;&amp; lng) 
+    ? `&lt;div class=&quot;map-container mt-3 rounded-lg overflow-hidden shadow-sm border border-border&quot;&gt;
+         &lt;iframe
+           width=&quot;100%&quot;
+           height=&quot;220&quot;
+           style=&quot;border:0&quot;
+           loading=&quot;lazy&quot;
+           allowfullscreen
+           referrerpolicy=&quot;no-referrer-when-downgrade&quot;
+           src=&quot;https://www.google.com/maps/embed/v1/place?key=${mapsApiKey}&amp;q=${lat},${lng}&quot;&gt;
+         &lt;/iframe&gt;
+       &lt;/div&gt;`
+    : &quot;&quot;;
+
+  return `&lt;article class=&quot;mt-3 rounded-lg border border-border bg-surface-strong/60 p-3&quot;&gt;
+    &lt;div class=&quot;flex flex-wrap items-start justify-between gap-3&quot;&gt;
+      &lt;div class=&quot;min-w-0&quot;&gt;
+        &lt;h3 class=&quot;text-sm font-semibold text-strong&quot;&gt;${escapeHtml(String(name))}&lt;/h3&gt;
+        &lt;p class=&quot;mt-1 text-xs text-muted&quot;&gt;${escapeHtml([address, locality].filter(Boolean).join(&quot;, &quot;))}&lt;/p&gt;
+      &lt;/div&gt;
+      ${distance ? `&lt;span class=&quot;telemetry-chip border-sage/25 bg-sage/10 text-sage&quot;&gt;${escapeHtml(distance)}&lt;/span&gt;` : &quot;&quot;}
+    &lt;/div&gt;
+    &lt;div class=&quot;mt-3 grid gap-2 text-xs text-muted sm:grid-cols-2&quot;&gt;
+      ${phone ? `&lt;span&gt;${escapeHtml(String(phone))}&lt;/span&gt;` : &quot;&quot;}
+      ${hours ? `&lt;span&gt;${escapeHtml(hours)}&lt;/span&gt;` : &quot;&quot;}
+      ${productName ? `&lt;span class=&quot;font-medium text-strong&quot;&gt;${escapeHtml(String(productName))}&lt;/span&gt;` : &quot;&quot;}
+      ${quantity !== null ? `&lt;span&gt;${escapeHtml(String(quantity))} available&lt;/span&gt;` : &quot;&quot;}
+    &lt;/div&gt;
+    
+    ${iframeMarkup}
+
+    &lt;div class=&quot;mt-3 flex flex-wrap items-center gap-2&quot;&gt;
+      ${stockStatus ? `&lt;span class=&quot;telemetry-chip ${stockClass}&quot;&gt;${escapeHtml(formatStockStatus(stockStatus))}&lt;/span&gt;` : &quot;&quot;}
+      ${pickupAvailable !== null ? `&lt;span class=&quot;telemetry-chip border-border bg-surface text-muted&quot;&gt;${pickupAvailable ? &quot;Pickup available&quot; : &quot;Pickup unavailable&quot;}&lt;/span&gt;` : &quot;&quot;}
+      ${action ? `&lt;a href=&quot;${escapeHtml(action.url)}&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; class=&quot;rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-accent-strong transition-colors hover:border-accent/40 hover:bg-accent-soft&quot;&gt;Open in Google Maps&lt;/a&gt;` : &quot;&quot;}
+    &lt;/div&gt;
+  &lt;/article&gt;`
+}
+</code></pre>
+</li>
+<li>
+<p><strong>Step E: Rebuild Assets and Refresh App Server</strong>
+Since you modified a frontend source asset file (<code>main.js</code>), you <strong>must</strong> compile it so that Vite builds the final production script bundle:</p>
+<pre><code class="language-bash">uv run python manage.py assets build
+</code></pre>
+<p>Restart the server if it isn't already running (<code>uv run coffee run</code>), and ask the chat <em>&quot;Where can I buy a Nitro Cold Brew?&quot;</em> to see the map dynamically appear!</p>
+</li>
+</ul>
+<hr />
+<h2>Appendix: Code Deep Dive &amp; Key Components Architecture</h2>
+<p>To help you understand the inner workings of this state-of-the-art application, let's break down the core engineering patterns:</p>
+<h3>1. SQLSpec Services (<code>src/app/lib/service.py</code>)</h3>
+<p>Instead of using bulky object-relational mapping wrappers, the project uses <strong>SQLSpec</strong> for blazing fast async database drivers. Named SQL files reside in <code>src/app/db/sql/</code>. Vector arrays are handled natively as standard Python <code>list[float]</code> types without manual binary conversion wrappers.</p>
+<h3>2. Dishka Dependency Injection (<code>src/app/ioc.py</code>)</h3>
+<p>Dependencies like database pools, LLM clients, and services are resolved automatically at the request handler argument boundary using <strong>Dishka</strong>. You do not need manual factory overrides or ad-hoc instantiations.</p>
+<h3>3. Google ADK 2.0 Chat Engine</h3>
+<p>Conversational flow planning, prompt state persistence, and agent node fallbacks are orchestrated dynamically using the <strong>Google ADK 2.0 Workflow/BaseNode</strong> layer. Session history is backed directly by high-performance Oracle database tables.</p>
+
+      </article>
+    </main>
+  </div>
+
+  <!-- Prism.js Syntax Highlighting JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+  <script>
+    // SVGs for Copy and Success States
+    const copyIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
+    const successIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-color);"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+    // Theme Toggle Logic
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const sunIcon = themeToggleBtn.querySelector('.sun-icon');
+    const moonIcon = themeToggleBtn.querySelector('.moon-icon');
+    
+    // Default to dark mode or system setting
+    let currentTheme = localStorage.getItem('theme') || 'dark';
+    document.body.setAttribute('data-theme', currentTheme);
+    updateThemeIcons(currentTheme);
+    updatePrismTheme(currentTheme);
+
+    themeToggleBtn.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', currentTheme);
+      localStorage.setItem('theme', currentTheme);
+      updateThemeIcons(currentTheme);
+      updatePrismTheme(currentTheme);
+    });
+
+    function updateThemeIcons(theme) {
+      if (theme === 'dark') {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+      } else {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+      }
+    }
+
+    function updatePrismTheme(theme) {
+      const themeLink = document.getElementById('prism-theme');
+      if (theme === 'dark') {
+        themeLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css';
+      } else {
+        themeLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css';
+      }
+    }
+
+    // Dynamic TOC Generation
+    const contentBody = document.getElementById('content-body');
+    const tocList = document.getElementById('toc-list');
+    const headers = contentBody.querySelectorAll('h2, h3');
+    const tocItems = [];
+
+    headers.forEach((header, index) => {
+      // Create ID if not existing
+      if (!header.id) {
+        header.id = 'heading-' + index;
+      }
+      
+      const level = header.tagName.toLowerCase();
+      const li = document.createElement('li');
+      li.className = `toc-item level-${level === 'h2' ? '2' : '3'}`;
+      
+      const a = document.createElement('a');
+      a.href = '#' + header.id;
+      a.textContent = header.textContent;
+      li.appendChild(a);
+      tocList.appendChild(li);
+      
+      tocItems.push({ header, link: li });
+    });
+
+    // Wrap pre code blocks in wrappers with copy button and language badge
+    const preBlocks = contentBody.querySelectorAll('pre');
+    preBlocks.forEach((pre) => {
+      const code = pre.querySelector('code');
+      if (!code) return;
+      
+      // Determine language
+      let lang = 'code';
+      const classes = Array.from(code.classList);
+      const langClass = classes.find(c => c.startsWith('language-'));
+      if (langClass) {
+        lang = langClass.replace('language-', '');
+      }
+      
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-block-wrapper';
+      
+      // Copy button
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-btn';
+      copyBtn.innerHTML = copyIconSvg;
+      copyBtn.title = 'Copy code';
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(code.innerText).then(() => {
+          copyBtn.innerHTML = successIconSvg;
+          setTimeout(() => {
+            copyBtn.innerHTML = copyIconSvg;
+          }, 2000);
+        });
+      });
+      
+      // Language badge
+      const langBadge = document.createElement('div');
+      langBadge.className = 'lang-badge';
+      langBadge.textContent = lang;
+      
+      // Rearrange DOM
+      pre.parentNode.insertBefore(wrapper, pre);
+      wrapper.appendChild(pre);
+      wrapper.appendChild(copyBtn);
+      wrapper.appendChild(langBadge);
+    });
+
+    // Scroll Position and Active Header Highlighting
+    const readingProgress = document.getElementById('reading-progress');
+    
+    window.addEventListener('scroll', () => {
+      // Update reading progress bar
+      const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+      readingProgress.style.width = scrolled + '%';
+
+      // Highlight active header in TOC
+      let activeIndex = -1;
+      const scrollPos = window.scrollY + 100; // Offset for sticky headers
+      
+      for (let i = 0; i < tocItems.length; i++) {
+        if (tocItems[i].header.offsetTop <= scrollPos) {
+          activeIndex = i;
+        } else {
+          break;
+        }
+      }
+
+      tocItems.forEach((item, index) => {
+        if (index === activeIndex) {
+          item.link.classList.add('active');
+          // Smooth scroll TOC sidebar to keep active item in view if scrollable
+          const sidebar = document.querySelector('.sidebar');
+          const itemTop = item.link.offsetTop;
+          const itemHeight = item.link.offsetHeight;
+          const sidebarHeight = sidebar.clientHeight;
+          if (itemTop < sidebar.scrollTop || itemTop + itemHeight > sidebar.scrollTop + sidebarHeight) {
+            sidebar.scrollTop = itemTop - sidebarHeight / 2;
+          }
+        } else {
+          item.link.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

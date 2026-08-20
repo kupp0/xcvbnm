@@ -1,0 +1,30 @@
+{
+  "event_name": "Test-kupp",
+  "selected_labs": [
+    {
+      "id": "alloydb_vectors",
+      "name": "One Million Vectors, Zero Loops (AlloyDB Vectors)",
+      "assets_src": "labs/lab01_alloydb_vectors",
+      "dest_dir": "labs/lab01_alloydb_vectors",
+      "skills": [],
+      "has_infra": true
+    },
+    {
+      "id": "fullstack_ai_app_property_search",
+      "name": "Swiss Property Search (Fullstack AI App & Gemini Data Analytics)",
+      "assets_src": "labs/lab02_fullstack_ai_app_property_search",
+      "dest_dir": "labs/lab02_fullstack_ai_app_property_search",
+      "skills": [],
+      "has_infra": false
+    },
+    {
+      "id": "oracle26ai_vertex_ai",
+      "name": "Hands-on Lab: Cymbal Coffee \u2014 Oracle 26ai + Vertex AI AI-Powered Agent",
+      "assets_src": "labs/lab03_oracle26ai_vertex_ai",
+      "dest_dir": "labs/lab03_oracle26ai_vertex_ai",
+      "skills": [],
+      "has_infra": false
+    }
+  ],
+  "mcp_servers": []
+}
